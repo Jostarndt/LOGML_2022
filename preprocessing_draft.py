@@ -61,7 +61,7 @@ def extract_quarter(bar_list, amount_quarter = 4):
         bars_in_quarter.append(quarter_list)
     return bars_in_quarter
 
-def get_node_features(output_tensor):
+def get_node_features(output_tensor, chromatic_scale=['C','C#','D','D#','E','F','F#','G','G#','A','A#','B']):
     node_features = pd.DataFrame()
     for feature in range(0, output_tensor.shape[-1]):
         # put into nodes x features format
@@ -70,10 +70,10 @@ def get_node_features(output_tensor):
 
         # get new indices
         new_ind = tmp_stack.index.get_level_values(0) + '_' +  tmp_stack.index.get_level_values(1).astype(str)
-        cp.index = new_ind
+        tmp_stack.index = new_ind
 
         # append into dataframe column for given feature
-        node_features[feature] = cp
+        node_features[feature] = tmp_stack
     return torch.tensor(node_features.values)
 
 def midi_to_vectors(midi_file):
@@ -122,12 +122,15 @@ if __name__ == '__main__':
     #print(G.edges(data=True))
     #pdb.set_trace()
     pyg_G = from_networkx(G)
-    pdb.set_trace()
-    print(pyg_G)
+    #print(pyg_G)
 
     output_tensor = midi_to_vectors(token_midi)
 
     print(output_tensor.size())
+
+    #pdb.set_trace()
+    pyg_G.x = output_tensor
+    print(pyg_G.x)
     
     '''
     segment_list = []
