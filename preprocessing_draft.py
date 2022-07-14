@@ -1,9 +1,9 @@
 import numpy as np
 #from music21 import *
-import music21 
+import music21
 import pdb
 import torch
-
+import pandas as pd
 import networkx as nx
 from torch_geometric.data import Data
 from torch_geometric.utils.convert import from_networkx
@@ -61,6 +61,21 @@ def extract_quarter(bar_list, amount_quarter = 4):
         bars_in_quarter.append(quarter_list)
     return bars_in_quarter
 
+def get_node_features(output_tensor):
+    node_features = pd.DataFrame()
+    for feature in range(0, output_tensor.shape[-1]):
+        # put into nodes x features format
+        tmp = pd.DataFrame(output_tensor[:, :, feature].numpy(), columns=chromatic_scale, index=np.arange(-output_tensor.shape[0]+1, 1, 1))
+        tmp_stack = tmp.T.stack()
+
+        # get new indices
+        new_ind = tmp_stack.index.get_level_values(0) + '_' +  tmp_stack.index.get_level_values(1).astype(str)
+        cp.index = new_ind
+
+        # append into dataframe column for given feature
+        node_features[feature] = cp
+    return torch.tensor(node_features.values)
+
 def midi_to_vectors(midi_file):
     midi_file_chord = midi_file.chordify()
     chord_list = []
@@ -89,19 +104,11 @@ def midi_to_vectors(midi_file):
             #pdb.set_trace()
             bar_tensor.append(signal_tensor)
         segment_list.append(torch.stack(bar_tensor))
-        output_tensor = torch.cat(segment_list) #dim: 16,12,1
-        output_tensor = torch.flatten(output_tensor, start_dim = 0, end_dim = 1)#TODO check if this is correct #dim: 192,1
-        pdb.set_trace()
-        print(output_tensor)
-        #should be c_14, c_13,..., C#_14,...
+    output_tensor = torch.cat(segment_list) #dim: 16,12,1
 
-        return output_tensor
-
-
-
-
-
-
+    # get node features
+    node_features = get_node_features(output_tensor)
+    return node_features
 
 if __name__ == '__main__':
     token_midi = music21.converter.parse(path)
