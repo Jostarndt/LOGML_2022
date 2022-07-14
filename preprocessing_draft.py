@@ -61,7 +61,7 @@ def extract_quarter(bar_list, amount_quarter = 4):
         bars_in_quarter.append(quarter_list)
     return bars_in_quarter
 
-def get_node_features(output_tensor, chromatic_scale=['C','C#','D','D#','E','F','F#','G','G#','A','A#','B']):
+def get_node_features(output_tensor, chromatic_scale=['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'], segments = 16, delta_t = 0.25):
     node_features = pd.DataFrame()
     for feature in range(0, output_tensor.shape[-1]):
         # put into nodes x features format
@@ -76,8 +76,18 @@ def get_node_features(output_tensor, chromatic_scale=['C','C#','D','D#','E','F',
         node_features[feature] = tmp_stack
     return torch.tensor(node_features.values)
 
-def midi_to_vectors(midi_file):
+def midi_to_vectors(midi_file, segments = 16, delta_t = 0.25):
     midi_file_chord = midi_file.chordify()
+    
+    total_bars = len(midi_file_chord)
+    
+    bars_in_window = segments * delta_t * 
+    for i in range(total_bars - bars_in_window):
+        for bar in midi_file.chord.measures(i+1, bars_in_window):
+            #check if 4/4-th measure
+            pass
+
+
     chord_list = []
     for bar in midi_file_chord.measures(1, 4):#len(midi_file_chord) is max amount of bars
         bar_list = []
@@ -87,7 +97,7 @@ def midi_to_vectors(midi_file):
             elif chord.isChord:
                 chord_encoded = ([note.midi for note in chord.pitches], chord.offset, chord.offset + chord.duration.quarterLength)
                 bar_list.append(chord_encoded)
-        bars_in_quarter = extract_quarter(bar_list)
+        bars_in_quarter = extract_quarter(bar_list, amount_quarter = 4)
         chord_list.append(bars_in_quarter)
     #return chord_list
 
@@ -105,6 +115,7 @@ def midi_to_vectors(midi_file):
             bar_tensor.append(signal_tensor)
         segment_list.append(torch.stack(bar_tensor))
     output_tensor = torch.cat(segment_list) #dim: 16,12,1
+
 
     # get node features
     node_features = get_node_features(output_tensor)
