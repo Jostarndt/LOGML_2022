@@ -172,23 +172,7 @@ if __name__ == '__main__':
 
     print(next(iter(x)))
     
-    '''
-    segment_list = []
-    for bar in output_list:
-        bar_tensor= []
-        for timestep in bar:
-            a = np.array(timestep)%12
-            mlb= MultiLabelBinarizer(classes= list(range(12)))
-            multi_hot = mlb.fit_transform([a]) 
-            signal = [[el] for el in multi_hot[0]]
-            signal_tensor = torch.tensor(signal, dtype = torch.float)
-            #print(signal_tensor)
-            #pdb.set_trace()
-            bar_tensor.append(signal_tensor)
-        segment_list.append(torch.stack(bar_tensor))
-    torch.cat(segment_list)
-    '''
-
+    
     #data = Data(x=signal_tensor, edge_index = pyg_G.edges)
 
 #TODO check 4/4 or not -> do soft encoding
